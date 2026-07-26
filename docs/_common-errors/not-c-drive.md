@@ -6,7 +6,7 @@ This error seems to occur when Spore is installed to a drive other than the C:\ 
 
 Unfortunately, we do not have any fix for this error, aside from reinstalling the game onto the C:\ drive.
 
-Please [ask for help](/support) if you are receiving this error when Spore is already installed on the C:\ drive. Include a screenshot of the error.
+Please [ask for help](/support) if you are receiving this error when Spore is already installed on the C:\ drive. Include a screenshot of the error, and a support info file.
 
 ## Reinstalling on C:\ drive
 - [Back up your save data](game-save-data)

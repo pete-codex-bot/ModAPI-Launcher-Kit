@@ -27,6 +27,6 @@ Press Alt+PrtScr to copy a screenshot, then you can paste it directly into Disco
 You may also be asked to send a support info file:
 - Press Win+R and type in `notepad "%appdata%\Spore ModAPI Launcher\support.info"`
 - A notepad window will open, copy and send the full contents of this file.
-- If you get a prompt "Cannot find the file", make sure the Launcher Kit is up-to-date.
+- *If you get a prompt "Cannot find the file", make sure the Launcher Kit is up-to-date.*
 
 Submit the above information in the #mod-support channel of the [Spore Modding Community Discord]({{ page.smc_discord_url }}) (recommended), or, create an issue on [GitHub](https://github.com/Spore-Community/ModAPI-Launcher-Kit/issues/new/choose) and submit it there. We do not provide technical support via email or DMs.

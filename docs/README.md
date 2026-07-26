@@ -22,6 +22,7 @@ Choose a title that is not overly-long, as it will be shown in the navigation li
 ```
 ---
 title: An Appropriate Title
+description: A short description that will appear in embeds when a link to this page is posted in some apps or websites (such as Discord). It won't appear on the website itself.
 ---
 ```
 

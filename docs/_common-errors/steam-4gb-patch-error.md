@@ -4,6 +4,8 @@ description: This error may occur if you have installed the LAA/4GB patch on the
 ---
 This error may occur if you have installed the LAA/4GB patch on the latest Steam version of the game. It is caused by Steam's DRM.
 
+The Launcher Kit will warn you if you have installed the LAA/4GB patch on this affected Steam version.
+
 You can remove the LAA/4GB patch by verifying game files in Steam. This will fix the error.
 
 Please see [here](improving-stability) for proper instructions on how to use the LAA/4GB patch with Steam.

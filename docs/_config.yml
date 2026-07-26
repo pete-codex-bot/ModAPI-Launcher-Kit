@@ -11,6 +11,7 @@ defaults:
       license_url: "https://github.com/Spore-Community/modapi-launcher-kit/blob/main/LICENSE"
       modbrowser_url: "https://mods.sporecommunity.com"
       patch151_url: "https://update.launcherkit.sporecommunity.com/spore_dd_patch_all_v5_1.exe"
+      botparts_url: "https://update.launcherkit.sporecommunity.com/BP2_Data.package"
       fixonline_mod_url: "https://mods.sporecommunity.com/?search=SporeFixOnline"
       multiplesaves_mod_url: "https://mods.sporecommunity.com/?search=Spore-MultipleSaveFiles"
       crashfix_mod_url: "https://mods.sporecommunity.com/?search=SporeCrashFix"

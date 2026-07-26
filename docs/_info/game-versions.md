@@ -17,7 +17,7 @@ If the Launcher Kit is installed, open the Easy Uninstaller. The game version is
 Alternatively, open the folder where Spore Galactic Adventures is installed and open the `SporebinEP1` folder. Hover over `SporeApp` to see the game version.
 
 ### Do not install multiple copies of the game
-Installing multiple copies of the game is known to cause a variety of problems. For example, do not install the game from EA App if you already have it installed from Steam or GOG. 
+Installing multiple copies of the game is known to cause a variety of problems. For example, do not install the game from EA App if you already have it installed from Steam or GOG.
 
 ### Galactic Adventures requirement
 Due to major changes and technical improvements introduced in Galactic Adventures, the Launcher Kit and most mods cannot work without Galactic Adventures.

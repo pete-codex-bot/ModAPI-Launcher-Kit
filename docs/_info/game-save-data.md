@@ -40,7 +40,7 @@ It is *not* recommended to restore this folder to its original location. Instead
 
 ---
 
-## Tips for transferring data to a new computer
+## Recommended steps for transferring data to a new computer
 - Make backups of the `%appdata%\Spore` and `My Spore Creations` folders (as described above) onto an external drive.
 - Keep copies of all `.sporemod` and `.package` mods.
 - On the new computer, install Spore and Galactic Adventures.
