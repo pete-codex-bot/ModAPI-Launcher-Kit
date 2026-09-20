@@ -51,10 +51,21 @@ $github_cli run watch "$run_id" --repo "$build_repository" --exit-status
 
 mkdir -p "$artifact_dir"
 find "$artifact_dir" -maxdepth 1 -type f \( -name '*.exe' -o -name '*.dll' -o -name 'SHA256SUMS.txt' \) -delete
+download_dir="$(mktemp -d "${TMPDIR:-/tmp}/spore-modapi-standard-user.XXXXXX")"
+trap 'find "$download_dir" -depth -delete' EXIT
 $github_cli run download "$run_id" \
   --repo "$build_repository" \
   --name "Spore-ModAPI-standard-user-$commit_sha" \
-  --dir "$artifact_dir"
+  --dir "$download_dir"
+
+for name in \
+  'Spore ModAPI Easy Installer.exe' \
+  'Spore ModAPI Easy Uninstaller.exe' \
+  'ModAPI.Common.dll' \
+  'Newtonsoft.Json.dll' \
+  'SHA256SUMS.txt'; do
+  cp "$download_dir/$name" "$artifact_dir/$name"
+done
 
 python3 scripts/verify-standard-user.py "$artifact_dir"
 echo "Standard-user binaries are ready in: $artifact_dir"
