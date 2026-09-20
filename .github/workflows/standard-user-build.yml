@@ -1,0 +1,26 @@
+name: Standard-user Easy Installer build
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'codex/standard-user-installers'
+
+jobs:
+  build:
+    runs-on: windows-2022
+
+    steps:
+      - uses: actions/checkout@v6
+      - uses: nuget/setup-nuget@v2
+
+      - name: Restore, build, collect, and verify
+        shell: pwsh
+        run: scripts/build-standard-user.ps1
+
+      - name: Upload standard-user artifacts
+        uses: actions/upload-artifact@v6
+        with:
+          name: Spore-ModAPI-standard-user-${{ github.sha }}
+          path: artifacts/standard-user/
+          if-no-files-found: error

@@ -47,7 +47,6 @@ namespace Spore_ModAPI_Easy_Installer
         //static FileType GetFileType(string fileName);
 
         // 
-
         public static InstalledMods ModList = new InstalledMods();
         public static string outcome = string.Empty;
 
@@ -59,18 +58,26 @@ namespace Spore_ModAPI_Easy_Installer
             if (!Permissions.IsAdministrator())
             {
                 UpdateManager.CheckForUpdates();
-                Permissions.RerunAsAdministrator();
             }
-            else
+
+            // Do not elevate here. The Easy Installer intentionally uses only the
+            // filesystem permissions granted to the current Windows user.
             {
                 Application.EnableVisualStyles();
-                ModList.Load();
 
                 // ensure we find Spore & GA as early as possible
                 if (!SporePath.IsGameInstalled(true))
                 {
                     return;
                 }
+
+                if (!RequiredPathsAreWritable(out string accessError))
+                {
+                    MessageBox.Show(accessError, "Easy Installer access error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
+                ModList.Load();
 
                 var cmdArgs = Environment.GetCommandLineArgs();
                 if ((cmdArgs.Length == 4) && bool.TryParse(cmdArgs[2], out bool configResult) && bool.TryParse(cmdArgs[3], out bool uninstall))
@@ -109,7 +116,8 @@ namespace Spore_ModAPI_Easy_Installer
                                     // install the package normally
                                     result = InstallPackage(inputPath, modName);
                                     // add to installed mods list
-                                    ModList.AddMod(modName).AddFile(Path.GetFileName(inputPath), SporePath.Game.GalacticAdventures);
+                                    if (result == ResultType.Success)
+                                        ModList.AddMod(modName).AddFile(Path.GetFileName(inputPath), SporePath.Game.GalacticAdventures);
                                     break;
 
                                 case FileType.SporeMod:
@@ -124,6 +132,11 @@ namespace Spore_ModAPI_Easy_Installer
                                     break;
                             }
                             results.Add(result);
+                        }
+                        catch (UnauthorizedAccessException ex)
+                        {
+                            errorStrings[i] = GetUnauthorizedAccessMessage(ex);
+                            results.Add(ResultType.UnauthorizedAccess);
                         }
                         catch (Exception ex)
                         {
@@ -142,6 +155,50 @@ namespace Spore_ModAPI_Easy_Installer
                 }
             }
         }
+
+        static string GetUnauthorizedAccessMessage(UnauthorizedAccessException ex)
+        {
+            return Strings.UnauthorizedAccess + "\n\n" + ex.Message;
+        }
+
+        static bool RequiredPathsAreWritable(out string error)
+        {
+            string launcherKitPath = Directory.GetParent(System.Reflection.Assembly.GetEntryAssembly().Location).ToString();
+            var paths = new List<string>
+            {
+                launcherKitPath,
+                SporePath.GetDataPath(SporePath.Game.Spore),
+                SporePath.GetDataPath(SporePath.Game.GalacticAdventures)
+            };
+
+            foreach (string subdirectory in new[] { "ModConfigs", "ModSettings", "mLibs" })
+            {
+                string path = Path.Combine(launcherKitPath, subdirectory);
+                if (Directory.Exists(path))
+                {
+                    paths.Add(path);
+                }
+            }
+
+            foreach (string path in paths)
+            {
+                string testFile = Path.Combine(path, ".modapi-write-test-" + Guid.NewGuid().ToString("N") + ".tmp");
+                try
+                {
+                    using (File.Create(testFile)) { }
+                    File.Delete(testFile);
+                }
+                catch (UnauthorizedAccessException ex)
+                {
+                    error = Strings.UnauthorizedAccess + "\n\nPath: " + path + "\n\n" + ex.Message;
+                    return false;
+                }
+            }
+
+            error = null;
+            return true;
+        }
+
         static string[] ShowFileChooser(FileChooserType type, string title, string filter, int filterIndex)
         {
             string[] paths = new string[0];
@@ -297,7 +354,7 @@ namespace Spore_ModAPI_Easy_Installer
             }
             catch (UnauthorizedAccessException)
             {
-                return ResultType.UnauthorizedAccess;
+                throw;
             }
         }
 
@@ -497,29 +554,36 @@ namespace Spore_ModAPI_Easy_Installer
 
                             result = ResultType.Success;
                         }
-                        catch (UnauthorizedAccessException)
+                        catch (UnauthorizedAccessException ex)
                         {
                             // remove all the files we added (so the mod is not only partially installed)
-                            RemoveModFiles(mod);
+                            string rollbackError = RemoveModFiles(mod);
                             ModList.RemoveMod(mod);
 
-                            result = ResultType.UnauthorizedAccess;
+                            exception = String.IsNullOrEmpty(rollbackError)
+                                ? ex
+                                : new UnauthorizedAccessException(ex.Message + "\n\nRollback also failed:\n" + rollbackError, ex);
                         }
                         catch (IOException)
                         {
                             // remove all the files we added (so the mod is not only partially installed)
-                            RemoveModFiles(mod);
+                            string rollbackError = RemoveModFiles(mod);
                             ModList.RemoveMod(mod);
-                            result = ResultType.InvalidPath;
+                            if (String.IsNullOrEmpty(rollbackError))
+                                result = ResultType.InvalidPath;
+                            else
+                                exception = new UnauthorizedAccessException("Rollback could not remove:\n" + rollbackError);
                         }
                         catch (Exception ex)
                         {
                             // remove all the files we added (so the mod is not only partially installed)
-                            RemoveModFiles(mod);
+                            string rollbackError = RemoveModFiles(mod);
                             ModList.RemoveMod(mod);
 
                             // just propagate the exception
-                            exception = ex;
+                            exception = String.IsNullOrEmpty(rollbackError)
+                                ? ex
+                                : new Exception(ex.Message + "\n\nRollback also failed:\n" + rollbackError, ex);
                         }
                     });
 
@@ -544,17 +608,23 @@ namespace Spore_ModAPI_Easy_Installer
 
         }
 
-        static void RemoveModFiles(ModConfiguration mod)
+        static string RemoveModFiles(ModConfiguration mod)
         {
+            var accessErrors = new List<string>();
             foreach (InstalledFile file in mod.InstalledFiles)
             {
                 string outputPath = GetOutputPath(file.PathType);
 
                 if (outputPath != null)
                 {
+                    string outputFile = Path.Combine(outputPath, file.Name);
                     try
                     {
-                        File.Delete(Path.Combine(outputPath, file.Name));
+                        File.Delete(outputFile);
+                    }
+                    catch (UnauthorizedAccessException ex)
+                    {
+                        accessErrors.Add(outputFile + ": " + ex.Message);
                     }
                     catch
                     {
@@ -562,6 +632,8 @@ namespace Spore_ModAPI_Easy_Installer
                     }
                 }
             }
+
+            return String.Join("\n", accessErrors);
         }
 
 

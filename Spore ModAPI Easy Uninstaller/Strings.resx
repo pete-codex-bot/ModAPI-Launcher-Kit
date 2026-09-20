@@ -142,7 +142,7 @@
     <value>The following mods were uninstalled:</value>
   </data>
   <data name="UnauthorizedAccess" xml:space="preserve">
-    <value>The Easy Uninstaller does not currently have permission to uninstall or change mods. You may need to right-click the Easy Uninstaller and "Run as Administrator".</value>
+    <value>The Easy Uninstaller could not write to a required path. Ask an administrator to grant this Windows account Modify permission to the path shown below. The uninstaller will not attempt to elevate.</value>
   </data>
   <data name="UninstallationSuccessful" xml:space="preserve">
     <value>Uninstallation successful</value>

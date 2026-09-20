@@ -31,9 +31,10 @@ namespace Spore_ModAPI_Easy_Uninstaller
             if (!Permissions.IsAdministrator())
             {
                 UpdateManager.CheckForUpdates();
-                Permissions.RerunAsAdministrator();
             }
-            else
+
+            // Do not elevate here. The Easy Uninstaller intentionally uses only the
+            // filesystem permissions granted to the current Windows user.
             {
                 Application.EnableVisualStyles();
                 Application.SetCompatibleTextRenderingDefault(false);
@@ -41,6 +42,12 @@ namespace Spore_ModAPI_Easy_Uninstaller
                 // ensure we find Spore & GA as early as possible
                 if (!SporePath.IsGameInstalled(true))
                 {
+                    return;
+                }
+
+                if (!RequiredPathsAreWritable(out string accessError))
+                {
+                    MessageBox.Show(accessError, Strings.CouldNotUninstall, MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
                 }
 
@@ -52,6 +59,44 @@ namespace Spore_ModAPI_Easy_Uninstaller
 
                 Application.Run(Form);
             }
+        }
+
+        static bool RequiredPathsAreWritable(out string error)
+        {
+            string launcherKitPath = Directory.GetParent(System.Reflection.Assembly.GetEntryAssembly().Location).ToString();
+            var paths = new List<string>
+            {
+                launcherKitPath,
+                SporePath.GetDataPath(SporePath.Game.Spore),
+                SporePath.GetDataPath(SporePath.Game.GalacticAdventures)
+            };
+
+            foreach (string subdirectory in new[] { "ModConfigs", "ModSettings", "mLibs" })
+            {
+                string path = Path.Combine(launcherKitPath, subdirectory);
+                if (Directory.Exists(path))
+                {
+                    paths.Add(path);
+                }
+            }
+
+            foreach (string path in paths)
+            {
+                string testFile = Path.Combine(path, ".modapi-write-test-" + Guid.NewGuid().ToString("N") + ".tmp");
+                try
+                {
+                    using (File.Create(testFile)) { }
+                    File.Delete(testFile);
+                }
+                catch (UnauthorizedAccessException ex)
+                {
+                    error = Strings.UnauthorizedAccess + "\n\nPath: " + path + "\n\n" + ex.Message;
+                    return false;
+                }
+            }
+
+            error = null;
+            return true;
         }
 
         public static void ReloadMods()
@@ -86,9 +131,9 @@ namespace Spore_ModAPI_Easy_Uninstaller
                     }
                 }
             }
-            catch (UnauthorizedAccessException)
+            catch (UnauthorizedAccessException ex)
             {
-                SupportInfo.ShowWarning(Strings.UnauthorizedAccess, Strings.CouldNotUninstall, false);
+                SupportInfo.ShowWarning(Strings.UnauthorizedAccess + "\n\n" + ex.Message, Strings.CouldNotUninstall, false);
             }
             catch (Exception ex)
             {

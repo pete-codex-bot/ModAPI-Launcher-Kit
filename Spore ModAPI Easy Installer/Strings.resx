@@ -165,6 +165,6 @@ Required ModAPI DLLs version: $REQUIREDVERSION$ or higher</value>
     <value>"$MODNAME$" cannot be installed, because it specifies an invalid version of the ModAPI DLLs. Please ask the mod developer for help.</value>
   </data>
   <data name="UnauthorizedAccess" xml:space="preserve">
-    <value>The Easy Installer does not currently have permission to install or change mods. You may need to right-click the Easy Installer and "Run as Administrator".</value>
+    <value>The Easy Installer could not write to a required path. Ask an administrator to grant this Windows account Modify permission to the path shown below. The installer will not attempt to elevate.</value>
   </data>
 </root>
