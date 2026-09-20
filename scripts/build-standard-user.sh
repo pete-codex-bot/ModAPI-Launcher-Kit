@@ -3,7 +3,7 @@ set -euo pipefail
 
 repository_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 artifact_dir="$repository_root/artifacts/standard-user"
-workflow_name="standard-user-build.yml"
+workflow_display_name="Standard-user Easy Installer build"
 
 cd "$repository_root"
 
@@ -36,11 +36,10 @@ fi
 commit_sha="$(git rev-parse HEAD)"
 run_id="$($github_cli run list \
   --repo "$build_repository" \
-  --workflow "$workflow_name" \
   --commit "$commit_sha" \
-  --limit 1 \
-  --json databaseId \
-  --jq '.[0].databaseId // empty')"
+  --limit 20 \
+  --json databaseId,workflowName \
+  --jq "[.[] | select(.workflowName == \"$workflow_display_name\")][0].databaseId // empty")"
 
 if [[ -z "$run_id" ]]; then
   echo "No CI build exists for $commit_sha in $build_repository." >&2
